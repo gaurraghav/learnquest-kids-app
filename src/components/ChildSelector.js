@@ -1,25 +1,38 @@
 'use client';
 
 import { useEffect } from 'react';
-import { motion } from 'framer-motion';
+import { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import useStore from '../store/useStore';
 import { getTTS } from '../utils/tts';
+import PinPad from './PinPad';
 
 export default function ChildSelector() {
   const setScreen = useStore((s) => s.setScreen);
   const selectChild = useStore((s) => s.selectChild);
   const children = useStore((s) => s.children);
+  const [targetChild, setTargetChild] = useState(null);
 
-  const handleSelect = (childId) => {
-    selectChild(childId);
+  // Use environment variables for Child PINs
+  const PIN_AMAY = process.env.NEXT_PUBLIC_AMAY_PIN || '1111';
+  const PIN_AYRA = process.env.NEXT_PUBLIC_AYRA_PIN || '2222';
+
+  const handleChildClick = (childId) => {
+    setTargetChild(childId);
+  };
+
+  const handlePinSuccess = () => {
+    if (!targetChild) return;
+    const name = children[targetChild].name;
     try {
-      const tts = getTTS();
-      tts.speakWelcome(children[childId].name);
-    } catch (e) { /* TTS not available */ }
+      getTTS().speakWelcome(name);
+    } catch (e) {}
+    selectChild(targetChild);
   };
 
   return (
-    <div className="page-center" style={{ minHeight: '100vh' }}>
+    <>
+      <div className="page-center" style={{ minHeight: '100vh' }}>
       {/* Back Button */}
       <motion.button
         className="btn btn-ghost btn-small"
@@ -58,7 +71,7 @@ export default function ChildSelector() {
         {/* Amay Card */}
         <motion.div
           className="avatar-card amay"
-          onClick={() => handleSelect('amay')}
+          onClick={() => handleChildClick('amay')}
           initial={{ opacity: 0, scale: 0.5, rotate: -10 }}
           animate={{ opacity: 1, scale: 1, rotate: 0 }}
           transition={{ duration: 0.6, delay: 0.2, type: 'spring', bounce: 0.4 }}
@@ -98,7 +111,7 @@ export default function ChildSelector() {
         {/* Ayra Card */}
         <motion.div
           className="avatar-card ayra"
-          onClick={() => handleSelect('ayra')}
+          onClick={() => handleChildClick('ayra')}
           initial={{ opacity: 0, scale: 0.5, rotate: 10 }}
           animate={{ opacity: 1, scale: 1, rotate: 0 }}
           transition={{ duration: 0.6, delay: 0.35, type: 'spring', bounce: 0.4 }}
@@ -135,6 +148,19 @@ export default function ChildSelector() {
           </div>
         </motion.div>
       </div>
-    </div>
+      </div>
+
+      <AnimatePresence>
+        {targetChild && (
+          <PinPad
+            title={`Enter ${children[targetChild].name}'s PIN`}
+            expectedPin={targetChild === 'amay' ? PIN_AMAY : PIN_AYRA}
+            onSuccess={handlePinSuccess}
+            onCancel={() => setTargetChild(null)}
+            theme={targetChild}
+          />
+        )}
+      </AnimatePresence>
+    </>
   );
 }

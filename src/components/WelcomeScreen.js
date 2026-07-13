@@ -1,7 +1,9 @@
 'use client';
 
-import { motion } from 'framer-motion';
+import { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import useStore from '../store/useStore';
+import PinPad from './PinPad';
 
 const container = {
   hidden: { opacity: 0 },
@@ -19,9 +21,19 @@ const item = {
 export default function WelcomeScreen() {
   const setScreen = useStore((s) => s.setScreen);
   const goToParentDashboard = useStore((s) => s.goToParentDashboard);
+  const [showPinPad, setShowPinPad] = useState(false);
+
+  // Use environment variable for Parent PIN (fallback to 1234)
+  const PARENT_PIN = process.env.NEXT_PUBLIC_PARENT_PIN || '1234';
+
+  const handleParentModeSuccess = () => {
+    setShowPinPad(false);
+    goToParentDashboard();
+  };
 
   return (
-    <div className="page-center" style={{ minHeight: '100vh', gap: '0' }}>
+    <>
+      <div className="page-center" style={{ minHeight: '100vh', gap: '0' }}>
       <motion.div
         variants={container}
         initial="hidden"
@@ -109,7 +121,7 @@ export default function WelcomeScreen() {
         <motion.div variants={item} style={{ marginTop: '24px' }}>
           <motion.button
             className="btn btn-ghost btn-small"
-            onClick={goToParentDashboard}
+            onClick={() => setShowPinPad(true)}
             whileHover={{ scale: 1.03 }}
             whileTap={{ scale: 0.97 }}
             style={{ opacity: 0.7 }}
@@ -141,6 +153,19 @@ export default function WelcomeScreen() {
           ))}
         </motion.div>
       </motion.div>
-    </div>
+      </div>
+
+      <AnimatePresence>
+        {showPinPad && (
+          <PinPad
+            title="Enter Parent PIN"
+            expectedPin={PARENT_PIN}
+            onSuccess={handleParentModeSuccess}
+            onCancel={() => setShowPinPad(false)}
+            theme="default"
+          />
+        )}
+      </AnimatePresence>
+    </>
   );
 }

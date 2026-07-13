@@ -4,6 +4,8 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import useStore from '../store/useStore';
 import { mathContent, mathTopics } from '../data/mathContent';
+import { englishContent } from '../data/englishContent';
+import { gkContent } from '../data/gkContent';
 import { BADGES } from '../data/badges';
 
 const container = {
@@ -27,9 +29,10 @@ export default function ParentDashboard() {
   const allBadges = BADGES;
 
   const [activeTab, setActiveTab] = useState(currentChild || 'amay');
+  const [expandedChapter, setExpandedChapter] = useState(null);
 
-  const child = children[activeTab];
-  const accuracy = child.totalQuestionsAttempted > 0
+  const child = children[activeTab] || children['amay'];
+  const accuracy = child && child.totalQuestionsAttempted > 0
     ? Math.round((child.totalCorrect / child.totalQuestionsAttempted) * 100)
     : 0;
 
@@ -84,6 +87,7 @@ export default function ParentDashboard() {
             {[
               { id: 'amay', name: 'Amay', emoji: '🦸‍♂️', color: 'var(--amay-primary)' },
               { id: 'ayra', name: 'Ayra', emoji: '👸', color: 'var(--ayra-primary)' },
+              { id: 'content', name: 'Review Content', emoji: '📚', color: 'var(--accent-purple)' },
             ].map((tab) => (
               <motion.button
                 key={tab.id}
@@ -118,7 +122,63 @@ export default function ParentDashboard() {
               exit={{ opacity: 0, y: -10 }}
               transition={{ duration: 0.3 }}
             >
-              {/* Overview Stats */}
+              {activeTab === 'content' ? (
+                <div className="glass-card" style={{ padding: '24px' }}>
+                  <h3 style={{ fontFamily: 'var(--font-display)', fontSize: 'var(--text-xl)', marginBottom: '16px' }}>
+                    Curriculum Overview
+                  </h3>
+                  <p style={{ color: 'var(--text-muted)', marginBottom: '24px' }}>
+                    Expand a chapter below to see the exact concepts and questions your children are learning.
+                  </p>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                    {[mathContent, englishContent, gkContent].map(subject => (
+                      <div key={subject.subject} style={{ marginBottom: '16px' }}>
+                        <h4 style={{ fontSize: 'var(--text-lg)', color: 'var(--text-primary)', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '8px', marginBottom: '16px' }}>
+                          {subject.subject} (Grade {subject.grade})
+                        </h4>
+                        {subject.chapters.map(chapter => (
+                          <div key={chapter.id} style={{ background: 'var(--bg-glass)', borderRadius: 'var(--radius-md)', overflow: 'hidden', border: '1px solid var(--border-subtle)', marginBottom: '8px' }}>
+                            <button
+                              onClick={() => setExpandedChapter(expandedChapter === chapter.id ? null : chapter.id)}
+                              style={{ width: '100%', padding: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'transparent', border: 'none', cursor: 'pointer', textAlign: 'left' }}
+                            >
+                              <span style={{ fontSize: 'var(--text-base)', fontWeight: 600, fontFamily: 'var(--font-display)' }}>
+                                {chapter.icon} {chapter.title}
+                              </span>
+                              <span>{expandedChapter === chapter.id ? '▼' : '▶'}</span>
+                            </button>
+                            {expandedChapter === chapter.id && (
+                              <div style={{ padding: '16px', borderTop: '1px solid var(--border-subtle)', background: 'rgba(0,0,0,0.1)' }}>
+                                <div style={{ marginBottom: '24px' }}>
+                                  <strong style={{ color: 'var(--accent-blue)', display: 'block', marginBottom: '8px' }}>Concept: {chapter.conceptExplanation.title}</strong>
+                                  <ul style={{ paddingLeft: '20px', color: 'var(--text-secondary)', fontSize: 'var(--text-sm)', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                                    {chapter.conceptExplanation.steps.map((step, idx) => (
+                                      <li key={idx}>{step.text}</li>
+                                    ))}
+                                  </ul>
+                                </div>
+                                <div>
+                                  <strong style={{ color: 'var(--accent-green)', display: 'block', marginBottom: '8px' }}>Questions ({chapter.questions.length})</strong>
+                                  <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                                    {chapter.questions.map((q, idx) => (
+                                      <div key={q.id} style={{ background: 'var(--bg-card)', padding: '12px', borderRadius: 'var(--radius-sm)', fontSize: 'var(--text-sm)' }}>
+                                        <p style={{ fontWeight: 600, marginBottom: '4px' }}>Q{idx + 1}: {q.question}</p>
+                                        <p style={{ color: 'var(--accent-green)' }}>Answer: {q.correctAnswer}</p>
+                                      </div>
+                                    ))}
+                                  </div>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                <>
+                  {/* Overview Stats */}
               <div style={{
                 display: 'grid',
                 gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))',
@@ -457,8 +517,10 @@ export default function ParentDashboard() {
                   )}
                 </div>
               </div>
-            </motion.div>
-          </AnimatePresence>
+            </>
+          )}
+        </motion.div>
+      </AnimatePresence>
         </motion.div>
       </div>
     </div>
