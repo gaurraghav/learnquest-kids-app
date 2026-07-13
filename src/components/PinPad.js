@@ -6,10 +6,12 @@ import { motion, AnimatePresence } from 'framer-motion';
 export default function PinPad({ title, expectedPin, onSuccess, onCancel, theme = 'default' }) {
   const [pin, setPin] = useState('');
   const [error, setError] = useState(false);
+  const [isSuccess, setIsSuccess] = useState(false);
 
   useEffect(() => {
-    if (pin.length === 4) {
+    if (pin.length === 4 && !isSuccess) {
       if (pin === expectedPin) {
+        setIsSuccess(true);
         onSuccess();
       } else {
         setError(true);
