@@ -158,6 +158,7 @@ export default function WelcomeScreen() {
       <AnimatePresence>
         {showPinPad && (
           <PinPad
+            key="parent-pinpad"
             title="Enter Parent PIN"
             expectedPin={PARENT_PIN}
             onSuccess={handleParentModeSuccess}

@@ -153,6 +153,7 @@ export default function ChildSelector() {
       <AnimatePresence>
         {targetChild && (
           <PinPad
+            key="child-pinpad"
             title={`Enter ${children[targetChild].name}'s PIN`}
             expectedPin={targetChild === 'amay' ? PIN_AMAY : PIN_AYRA}
             onSuccess={handlePinSuccess}
